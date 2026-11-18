@@ -1,0 +1,61 @@
+{
+  "manifest_version": 3,
+  "name": "Teams 会议助手",
+  "version": "0.5.1",
+  "description": "在浏览器版 Teams 会议里录音、抓实时字幕，并在侧栏实时翻译、总结、给出建议回答。支持 Claude、OpenAI、Gemini、DeepSeek、通义千问、Kimi、智谱、豆包等。",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "sidePanel",
+    "storage",
+    "tabCapture",
+    "offscreen",
+    "downloads",
+    "activeTab",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://teams.microsoft.com/*",
+    "https://teams.live.com/*",
+    "https://teams.cloud.microsoft/*",
+    "https://api.anthropic.com/*",
+    "https://api.openai.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.deepseek.com/*",
+    "https://dashscope.aliyuncs.com/*",
+    "https://api.moonshot.cn/*",
+    "https://open.bigmodel.cn/*",
+    "https://ark.cn-beijing.volces.com/*",
+    "https://api.siliconflow.cn/*",
+    "https://openrouter.ai/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {
+    "default_title": "打开 Teams 会议助手"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://teams.microsoft.com/*",
+        "https://teams.live.com/*",
+        "https://teams.cloud.microsoft/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "all_frames": true,
+      "run_at": "document_idle"
+    }
+  ],
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ]
+}

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Teams 会议助手</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <button id="recBtn" class="rec"><span class="dot"></span><span id="recLabel">录音</span></button>
+      <span id="recTime" class="muted"></span>
+      <span class="spacer"></span>
+      <button id="exportBtn" class="ghost" title="现在生成会议纪要并保存">导出</button>
+      <button id="clearBtn" class="ghost" title="清空本场记录">清空</button>
+      <button id="settingsBtn" class="ghost">设置</button>
+    </div>
+    <div id="status" class="status"></div>
+    <button id="folderBanner" class="banner" hidden></button>
+    <nav>
+      <button data-tab="live" class="active">实时翻译</button>
+      <button data-tab="summary">总结</button>
+      <button data-tab="reply">建议回答</button>
+      <button data-tab="bg">背景</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="tab-live" class="tab active">
+      <div id="lines" class="lines"></div>
+      <div id="empty" class="empty">
+        <p>还没有字幕。</p>
+        <p class="muted">在 Teams 会议里打开实时字幕：<br>「更多」→「语言和语音」→「打开实时字幕」</p>
+      </div>
+    </section>
+
+    <section id="tab-summary" class="tab">
+      <div class="actions">
+        <button id="summaryBtn" class="primary">生成 / 更新总结</button>
+        <label class="check"><input type="checkbox" id="autoSummary"> 每 5 分钟自动更新</label>
+      </div>
+      <div id="summaryOut" class="md muted">会议进行中随时可以点，会根据目前全部字幕总结。</div>
+    </section>
+
+    <section id="tab-bg" class="tab">
+      <p class="muted small">
+        人名和岗位、公司、项目术语、缩写写在这里。翻译、总结、纪要和建议回答都会参考：纠正字幕里听错的人名，统一译名，在纪要里注明「谁 · 什么岗位」。
+      </p>
+      <div class="bgfolder">
+        <div>背景资料文件夹：<b id="bgFolderName">没选</b></div>
+        <div class="actions">
+          <button id="pickBgFolder" class="primary">选择文件夹…</button>
+          <button id="reloadBg" class="ghost">重新读取</button>
+          <button id="clearBgFolder" class="ghost" hidden>不用文件夹</button>
+        </div>
+        <p class="muted small">会读这个文件夹（含子文件夹）里所有 .md / .txt，比如 Obsidian 里专门放人员名单、术语表、项目说明的文件夹。名字带「背景 / 人员 / 术语 / 通讯 / 名单」的文件优先，其余按修改时间从新到旧，总共最多约 8 万字。每场会开始时和生成纪要前会自动重读。</p>
+        <div id="bgFileInfo" class="small"></div>
+        <ul id="bgFileList" class="small muted"></ul>
+      </div>
+      <h3>补充（只存在这台电脑）</h3>
+      <div class="actions">
+        <button id="bgSpeakers" class="ghost">把本场发言人加进来</button>
+        <label class="ghost filebtn">从文件导入…<input id="bgImport" type="file" accept=".md,.txt,text/plain,text/markdown" hidden></label>
+      </div>
+      <textarea id="bgText" rows="18" placeholder="# 人员&#10;John Smith（客户方）— 项目经理&#10;Li Wei — 我方技术负责人&#10;&#10;# 术语&#10;SOW — Scope of Work，工作范围&#10;BOQ — Bill of Quantities，工程量清单"></textarea>
+      <p class="muted small">框里的内容和文件夹里读到的合在一起用。</p>
+    </section>
+
+    <section id="tab-reply" class="tab">
+      <div class="me">
+        <label>我在 Teams 里的名字
+          <div class="row-inline">
+            <input id="myNames" placeholder="字幕里显示的名字，多个用逗号隔开，比如 Li Wei, 小王">
+            <select id="pickSpeaker" title="从本场发言人里选"><option value="">从发言人选…</option></select>
+          </div>
+        </label>
+        <label>我的立场 / 目标（每场会可以不同）
+          <textarea id="myStance" rows="3" placeholder="比如：代表乙方；工期不能再压缩；费用超出合同的部分要对方书面确认；对不确定的事先说回去确认"></textarea>
+        </label>
+        <label class="check"><input type="checkbox" id="autoReply"> 有人问我时自动生成建议回复</label>
+        <p class="muted small">打开后：别人的话里点了你的名字、或者像是在问你（问句、请你更新进度 / 发表意见等），会自动判断要不要你回答；要的话，在「实时翻译」里那句话下面直接出建议回复，这里也会同步一份。你自己说话、别人之间的问答不会触发。</p>
+      </div>
+      <div class="actions">
+        <button id="replyBtn" class="primary">根据最近的对话给我建议回答</button>
+      </div>
+      <textarea id="replyHint" rows="2" placeholder="可选：补充你的立场或想法，比如「我想先拒绝，下周再说」"></textarea>
+      <div id="replyOut" class="md muted">会参考你在设置里填的身份背景。</div>
+
+      <h3>帮我说</h3>
+      <textarea id="sayInput" rows="2" placeholder="用中文写你想表达的意思，回车生成"></textarea>
+      <div id="sayOut" class="md"></div>
+    </section>
+  </main>
+
+  <dialog id="settings">
+    <form method="dialog">
+      <h2>设置</h2>
+      <label>AI 服务商
+        <select id="provider"></select>
+      </label>
+      <label>接口地址
+        <input id="baseUrl" placeholder="https://…/v1">
+      </label>
+      <label>API Key
+        <input id="apiKey" type="password" autocomplete="off">
+        <span id="keyHint" class="muted small"></span>
+      </label>
+      <label>模型
+        <input id="model" list="modelList" autocomplete="off" placeholder="模型名">
+        <datalist id="modelList"></datalist>
+      </label>
+      <div class="row-left">
+        <button type="button" id="fetchModels" class="ghost">获取模型列表</button>
+        <button type="button" id="testApi" class="ghost">测试连接</button>
+        <span id="apiTestOut" class="small muted"></span>
+      </div>
+      <label>翻译成
+        <input id="targetLang" placeholder="简体中文">
+      </label>
+      <label>我的身份背景（建议回答会参考）
+        <textarea id="profile" rows="3" placeholder="比如：我是产品经理，负责 X 项目，这次会主要跟海外团队对排期"></textarea>
+      </label>
+      <label class="check"><input type="checkbox" id="translateOn"> 实时翻译字幕</label>
+      <label class="check"><input type="checkbox" id="micOn"> 录音时也录我的麦克风</label>
+      <fieldset>
+        <legend>会议纪要</legend>
+        <label class="check"><input type="checkbox" id="autoExport"> 会议结束时自动生成纪要并保存</label>
+        <label class="check"><input type="radio" name="saveMode" value="folder"> 存到指定文件夹：<b id="folderName">还没选</b></label>
+        <button type="button" id="pickFolder" class="ghost">选择文件夹…</button>
+        <label class="check"><input type="radio" name="saveMode" value="downloads"> 存到下载目录里的子文件夹</label>
+        <input id="downloadsSubdir" placeholder="Teams会议纪要">
+      </fieldset>
+      <p class="muted small">录麦克风要先 <a href="permission.html" target="_blank">授权一次</a>。Key 只存在本机浏览器里，直接发给 Anthropic。</p>
+      <div class="row">
+        <button value="cancel" class="ghost">取消</button>
+        <button id="saveSettings" value="save" class="primary">保存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="sidepanel.js"></script>
+</body>
+</html>
