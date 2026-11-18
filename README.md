@@ -194,3 +194,7 @@ BOQ — Bill of Quantities，工程量清单
 抓字幕靠 Teams 网页里的 `data-tid="closed-caption-text"` 等标记，在 `content.js` 顶部；Teams 改版后可能要更新。
 
 </details>
+
+## 许可证
+
+[MIT](LICENSE)：可以自由使用、修改、分发，保留版权声明即可。
